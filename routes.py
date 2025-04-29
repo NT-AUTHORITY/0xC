@@ -9,8 +9,9 @@ api = Blueprint('api', __name__)
 
 @api.route('/messages', methods=['GET'])
 @api_key_required
-def get_messages():
-    """Get all messages (public endpoint, requires API key if enabled)."""
+@token_required
+def get_messages(current_user):
+    """Get all messages (requires authentication)."""
     return jsonify({
         'status': 'success',
         'messages': Message.get_all()
@@ -55,8 +56,9 @@ def create_message(current_user):
 
 @api.route('/messages/<message_id>', methods=['GET'])
 @api_key_required
-def get_message(message_id):
-    """Get a specific message by ID (public endpoint, requires API key if enabled)."""
+@token_required
+def get_message(current_user, message_id):
+    """Get a specific message by ID (requires authentication)."""
     message = Message.get_by_id(message_id)
 
     if not message:

@@ -42,9 +42,9 @@ A simple chat API built with Python Flask for the 0xC (Chat) project.
 
 ### Message Endpoints
 
-- `GET /api/messages` - Retrieve all chat messages (public)
+- `GET /api/messages` - Retrieve all chat messages (requires authentication)
 - `POST /api/messages` - Send a new message (requires authentication)
-- `GET /api/messages/<message_id>` - Get a specific message (public)
+- `GET /api/messages/<message_id>` - Get a specific message (requires authentication)
 - `DELETE /api/messages/<message_id>` - Delete a message (requires authentication and ownership)
 - `GET /api/messages/me` - Get all messages by the authenticated user (requires authentication)
 
@@ -495,10 +495,11 @@ curl -X POST http://localhost:5000/api/messages \
 }
 ```
 
-#### Get all messages (public)
+#### Get all messages (authenticated)
 
 ```bash
-curl -X GET http://localhost:5000/api/messages
+curl -X GET http://localhost:5000/api/messages \
+  -H "Authorization: Bearer your-access-token"
 ```
 
 **Response:**
@@ -549,10 +550,11 @@ curl -X GET http://localhost:5000/api/messages/me \
 }
 ```
 
-#### Get a specific message (public)
+#### Get a specific message (authenticated)
 
 ```bash
-curl -X GET http://localhost:5000/api/messages/550e8400-e29b-41d4-a716-446655440001
+curl -X GET http://localhost:5000/api/messages/550e8400-e29b-41d4-a716-446655440001 \
+  -H "Authorization: Bearer your-access-token"
 ```
 
 **Response:**

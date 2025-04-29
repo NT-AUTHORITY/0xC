@@ -42,9 +42,9 @@
 
 ### 消息端点
 
-- `GET /api/messages` - 获取所有聊天消息（公开）
+- `GET /api/messages` - 获取所有聊天消息（需要认证）
 - `POST /api/messages` - 发送新消息（需要认证）
-- `GET /api/messages/<message_id>` - 获取特定消息（公开）
+- `GET /api/messages/<message_id>` - 获取特定消息（需要认证）
 - `DELETE /api/messages/<message_id>` - 删除消息（需要认证和所有权）
 - `GET /api/messages/me` - 获取已认证用户的所有消息（需要认证）
 
@@ -494,10 +494,11 @@ curl -X POST http://localhost:5000/api/messages \
 }
 ```
 
-#### 获取所有消息（公开）
+#### 获取所有消息（需要认证）
 
 ```bash
-curl -X GET http://localhost:5000/api/messages
+curl -X GET http://localhost:5000/api/messages \
+  -H "Authorization: Bearer your-access-token"
 ```
 
 **响应：**
@@ -548,10 +549,11 @@ curl -X GET http://localhost:5000/api/messages/me \
 }
 ```
 
-#### 获取特定消息（公开）
+#### 获取特定消息（需要认证）
 
 ```bash
-curl -X GET http://localhost:5000/api/messages/550e8400-e29b-41d4-a716-446655440001
+curl -X GET http://localhost:5000/api/messages/550e8400-e29b-41d4-a716-446655440001 \
+  -H "Authorization: Bearer your-access-token"
 ```
 
 **响应：**
