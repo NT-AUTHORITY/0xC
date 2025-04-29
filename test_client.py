@@ -211,8 +211,13 @@ class ChatAPIClient:
 
         return False
 
-    def send_message(self, content):
-        """Send a new message."""
+    def send_message(self, content, recipient_id=None):
+        """Send a new message.
+
+        Args:
+            content: The content of the message
+            recipient_id: Optional recipient user ID for private messages
+        """
         if not self.access_token:
             print("Error: Not logged in")
             return None
@@ -220,11 +225,17 @@ class ChatAPIClient:
         # Check if token needs refreshing
         self.refresh_token_if_needed()
 
-        print(f"\n=== Sending message ===")
+        if recipient_id:
+            print(f"\n=== Sending private message to user {recipient_id} ===")
+        else:
+            print(f"\n=== Sending public message ===")
 
         payload = {
             "content": content
         }
+
+        if recipient_id:
+            payload["recipient_id"] = recipient_id
 
         response = requests.post(
             f"{self.base_url}/api/messages",
@@ -352,17 +363,28 @@ def run_demo():
     # Create client
     client = ChatAPIClient()
 
-    # Register two users
+    # Dictionary to store user IDs
+    user_ids = {}
+
+    # Register three users
     client.register("testuser1", "password123", "test1@example.com")
     client.register("testuser2", "password123", "test2@example.com")
+    client.register("testuser3", "password123", "test3@example.com")
 
     # Login as first user
+    print("\n\n========== TESTING USER 1 ==========")
     if client.login("testuser1", "password123"):
-        # Send a message
-        message1 = client.send_message("Hello from testuser1!")
+        # Store user ID
+        user_ids["testuser1"] = client.user_info["id"]
+
+        # Send a public message
+        public_message1 = client.send_message("Hello from testuser1! This is a public message.")
 
         # Get all messages
         all_messages = client.get_messages()
+        print("\n=== All messages (as seen by User 1) ===")
+        for message in all_messages:
+            client.print_message(message)
 
         # Get my messages
         my_messages = client.get_my_messages()
@@ -371,25 +393,104 @@ def run_demo():
         client.logout()
 
     # Login as second user
+    print("\n\n========== TESTING USER 2 ==========")
     if client.login("testuser2", "password123"):
-        # Send a message
-        message2 = client.send_message("Hello from testuser2!")
+        # Store user ID
+        user_ids["testuser2"] = client.user_info["id"]
 
-        # Get a specific message
-        if message1:
-            specific_message = client.get_message(message1["id"])
+        # Send a public message
+        public_message2 = client.send_message("Hello from testuser2! This is a public message.")
+
+        # Send a private message to user 1
+        private_message2to1 = client.send_message(
+            "Hello testuser1! This is a private message from testuser2.",
+            user_ids["testuser1"]
+        )
+
+        # Get a specific message (public message from user 1)
+        if public_message1:
+            print("\n=== User 2 trying to access User 1's public message ===")
+            specific_message = client.get_message(public_message1["id"])
             if specific_message:
-                print("\n=== Message from testuser1 ===")
+                print("User 2 CAN access User 1's public message:")
                 client.print_message(specific_message)
+            else:
+                print("User 2 CANNOT access User 1's public message or message not found")
 
         # Get all messages again
         all_messages = client.get_messages()
-        print("\n=== All messages ===")
+        print("\n=== All messages (as seen by User 2) ===")
         for message in all_messages:
             client.print_message(message)
 
         # Logout
         client.logout()
+
+    # Login as third user
+    print("\n\n========== TESTING USER 3 ==========")
+    if client.login("testuser3", "password123"):
+        # Store user ID
+        user_ids["testuser3"] = client.user_info["id"]
+
+        # Try to get user 1's public message
+        if public_message1:
+            print("\n=== User 3 trying to access User 1's public message ===")
+            specific_message = client.get_message(public_message1["id"])
+            if specific_message:
+                print("User 3 CAN access User 1's public message:")
+                client.print_message(specific_message)
+            else:
+                print("User 3 CANNOT access User 1's public message or message not found")
+
+        # Try to get private message from user 2 to user 1
+        if private_message2to1:
+            print("\n=== User 3 trying to access private message from User 2 to User 1 ===")
+            specific_message = client.get_message(private_message2to1["id"])
+            if specific_message:
+                print("User 3 CAN access the private message (security issue!):")
+                client.print_message(specific_message)
+            else:
+                print("User 3 CANNOT access the private message (expected behavior)")
+
+        # Send a private message to user 1
+        private_message3to1 = client.send_message(
+            "Hello testuser1! This is a private message from testuser3.",
+            user_ids["testuser1"]
+        )
+
+        # Send a public message
+        public_message3 = client.send_message("Hello from testuser3! This is a public message.")
+
+        # Get all messages
+        all_messages = client.get_messages()
+        print("\n=== All messages (as seen by User 3) ===")
+        for message in all_messages:
+            client.print_message(message)
+
+        # Logout
+        client.logout()
+
+    # Login as first user again to check private messages
+    print("\n\n========== TESTING USER 1 AGAIN ==========")
+    if client.login("testuser1", "password123"):
+        # Get all messages
+        all_messages = client.get_messages()
+        print("\n=== All messages (as seen by User 1) ===")
+        print(f"User 1 should see: public messages from all users + private messages sent to/from User 1")
+        print(f"Expected count: 5 messages (3 public + 2 private to User 1)")
+        print(f"Actual count: {len(all_messages)} messages")
+
+        for message in all_messages:
+            client.print_message(message)
+
+        # Logout
+        client.logout()
+
+    print("\n\n========== TEST COMPLETE ==========")
+    print("Privacy Model:")
+    print("1. Public messages (no recipient_id) are visible to all users")
+    print("2. Private messages (with recipient_id) are only visible to the sender and recipient")
+    print("3. Each user can see: their own messages + messages sent to them + public messages")
 
 
 def parse_arguments():

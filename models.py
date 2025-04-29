@@ -178,11 +178,18 @@ class User:
 class Message:
     """Message model for chat application."""
 
-    def __init__(self, user_id, content):
-        """Initialize a new message."""
+    def __init__(self, user_id, content, recipient_id=None):
+        """Initialize a new message.
+
+        Args:
+            user_id: The ID of the user sending the message
+            content: The content of the message
+            recipient_id: The ID of the recipient user (None for public messages)
+        """
         self.id = str(uuid.uuid4())
         self.user_id = user_id
         self.content = content
+        self.recipient_id = recipient_id
         self.timestamp = datetime.now(timezone.utc)
 
     def to_dict(self):
@@ -190,13 +197,23 @@ class Message:
         user = User.get_by_id(self.user_id)
         username = user.username if user else "Unknown"
 
-        return {
+        # Get recipient information if available
+        recipient_username = None
+        if self.recipient_id:
+            recipient = User.get_by_id(self.recipient_id)
+            recipient_username = recipient.username if recipient else None
+
+        result = {
             'id': self.id,
             'user_id': self.user_id,
             'username': username,
             'content': self.content,
-            'timestamp': self.timestamp.isoformat()
+            'timestamp': self.timestamp.isoformat(),
+            'recipient_id': self.recipient_id,
+            'recipient_username': recipient_username
         }
+
+        return result
 
     @classmethod
     def from_dict(cls, data):
@@ -206,6 +223,7 @@ class Message:
         message.user_id = data['user_id']
         message.content = data['content']
         message.timestamp = datetime.fromisoformat(data['timestamp'])
+        message.recipient_id = data.get('recipient_id')  # Use get() to handle older messages without this field
         return message
 
     @classmethod
@@ -218,11 +236,38 @@ class Message:
 
     @classmethod
     def get_by_user(cls, user_id):
-        """Get all messages by a specific user."""
+        """Get all messages sent by a specific user."""
         messages_dict = json_storage.get_messages_by_user(user_id)
         # Sort messages by timestamp
         messages_dict.sort(key=lambda x: x['timestamp'])
         return messages_dict
+
+    @classmethod
+    def get_viewable_by_user(cls, user_id):
+        """Get all messages that a user can view.
+
+        This includes:
+        1. Messages sent by the user
+        2. Messages sent to the user
+        3. Public messages (no recipient_id)
+        """
+        all_messages = json_storage.get_messages()
+        viewable_messages = []
+
+        for message in all_messages:
+            # Include if user is the sender
+            if message['user_id'] == user_id:
+                viewable_messages.append(message)
+            # Include if user is the recipient
+            elif message.get('recipient_id') == user_id:
+                viewable_messages.append(message)
+            # Include if message is public (no recipient)
+            elif message.get('recipient_id') is None:
+                viewable_messages.append(message)
+
+        # Sort messages by timestamp
+        viewable_messages.sort(key=lambda x: x['timestamp'])
+        return viewable_messages
 
     @classmethod
     def get_by_id(cls, message_id):
@@ -233,9 +278,15 @@ class Message:
         return None
 
     @classmethod
-    def add(cls, user_id, content):
-        """Add a new message."""
-        message = Message(user_id, content)
+    def add(cls, user_id, content, recipient_id=None):
+        """Add a new message.
+
+        Args:
+            user_id: The ID of the user sending the message
+            content: The content of the message
+            recipient_id: The ID of the recipient user (None for public messages)
+        """
+        message = Message(user_id, content, recipient_id)
         message_dict = message.to_dict()
         json_storage.add_message(message_dict)
         return message

@@ -42,11 +42,16 @@
 
 ### 消息端点
 
-- `GET /api/messages` - 获取所有聊天消息（需要认证）
-- `POST /api/messages` - 发送新消息（需要认证）
-- `GET /api/messages/<message_id>` - 获取特定消息（需要认证）
+- `GET /api/messages` - 获取当前用户可查看的所有消息（需要认证）
+- `POST /api/messages` - 发送新消息，可选择指定接收者（需要认证）
+- `GET /api/messages/<message_id>` - 获取特定消息（需要认证和权限）
 - `DELETE /api/messages/<message_id>` - 删除消息（需要认证和所有权）
-- `GET /api/messages/me` - 获取已认证用户的所有消息（需要认证）
+- `GET /api/messages/me` - 获取已认证用户发送的所有消息（需要认证）
+
+注意：用户可以查看以下消息：
+1. 用户发送的消息
+2. 发送给用户的消息
+3. 公开消息（未指定接收者）
 
 ### 认证端点
 
@@ -464,7 +469,7 @@ curl -X GET http://localhost:5000/api/auth/token-info \
 
 ### 消息
 
-#### 发送消息（需要认证）
+#### 发送公开消息（需要认证）
 
 ```bash
 curl -X POST http://localhost:5000/api/messages \
@@ -474,9 +479,21 @@ curl -X POST http://localhost:5000/api/messages \
   -d '{"content": "Hello, world!"}'
 ```
 
+#### 发送私信给特定用户（需要认证）
+
+```bash
+curl -X POST http://localhost:5000/api/messages \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-access-token" \
+  -H "X-API-Key: your-secret-key-here" \
+  -d '{"content": "Hello, this is a private message!", "recipient_id": "user-id-here"}'
+```
+
 > 注意：
 > - `Authorization` 请求头用于用户认证（JWT）
 > - `X-API-Key` 请求头用于 API 认证（只有在 `SECRET_KEY_ENABLED=1` 时才需要）
+> - 公开消息（没有 recipient_id）对所有用户可见
+> - 私信（有 recipient_id）只对发送者和接收者可见
 
 **响应：**
 
@@ -494,7 +511,7 @@ curl -X POST http://localhost:5000/api/messages \
 }
 ```
 
-#### 获取所有消息（需要认证）
+#### 获取您的消息（需要认证）
 
 ```bash
 curl -X GET http://localhost:5000/api/messages \
@@ -549,12 +566,14 @@ curl -X GET http://localhost:5000/api/messages/me \
 }
 ```
 
-#### 获取特定消息（需要认证）
+#### 获取特定消息（需要认证和所有权）
 
 ```bash
 curl -X GET http://localhost:5000/api/messages/550e8400-e29b-41d4-a716-446655440001 \
   -H "Authorization: Bearer your-access-token"
 ```
+
+注意：只有当认证用户是消息的发送者时，此操作才会成功。
 
 **响应：**
 
@@ -614,6 +633,7 @@ curl -X DELETE http://localhost:5000/api/messages/550e8400-e29b-41d4-a716-446655
 
 ## 未来改进
 
+- 实现聊天室或用户之间的直接消息传递
 - 添加消息编辑功能
 - 实现实时消息传递（WebSockets）
 - 添加用户资料管理

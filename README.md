@@ -42,11 +42,16 @@ A simple chat API built with Python Flask for the 0xC (Chat) project.
 
 ### Message Endpoints
 
-- `GET /api/messages` - Retrieve all chat messages (requires authentication)
-- `POST /api/messages` - Send a new message (requires authentication)
-- `GET /api/messages/<message_id>` - Get a specific message (requires authentication)
+- `GET /api/messages` - Retrieve all messages viewable by the current user (requires authentication)
+- `POST /api/messages` - Send a new message, optionally to a specific recipient (requires authentication)
+- `GET /api/messages/<message_id>` - Get a specific message (requires authentication and permission)
 - `DELETE /api/messages/<message_id>` - Delete a message (requires authentication and ownership)
-- `GET /api/messages/me` - Get all messages by the authenticated user (requires authentication)
+- `GET /api/messages/me` - Get all messages sent by the authenticated user (requires authentication)
+
+Note: A user can view messages if they are:
+1. The sender of the message
+2. The recipient of the message
+3. The message is public (no recipient specified)
 
 ### Authentication Endpoints
 
@@ -465,7 +470,7 @@ curl -X GET http://localhost:5000/api/auth/token-info \
 
 ### Messages
 
-#### Send a message (authenticated)
+#### Send a public message (authenticated)
 
 ```bash
 curl -X POST http://localhost:5000/api/messages \
@@ -475,9 +480,21 @@ curl -X POST http://localhost:5000/api/messages \
   -d '{"content": "Hello, world!"}'
 ```
 
+#### Send a private message to a specific user (authenticated)
+
+```bash
+curl -X POST http://localhost:5000/api/messages \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-access-token" \
+  -H "X-API-Key: your-secret-key-here" \
+  -d '{"content": "Hello, this is a private message!", "recipient_id": "user-id-here"}'
+```
+
 > Note:
 > - The `Authorization` header is used for user authentication (JWT)
 > - The `X-API-Key` header is used for API authentication (only required when `SECRET_KEY_ENABLED=1`)
+> - Public messages (without recipient_id) are visible to all users
+> - Private messages (with recipient_id) are only visible to the sender and recipient
 
 **Response:**
 
@@ -495,7 +512,7 @@ curl -X POST http://localhost:5000/api/messages \
 }
 ```
 
-#### Get all messages (authenticated)
+#### Get your messages (authenticated)
 
 ```bash
 curl -X GET http://localhost:5000/api/messages \
@@ -550,12 +567,14 @@ curl -X GET http://localhost:5000/api/messages/me \
 }
 ```
 
-#### Get a specific message (authenticated)
+#### Get a specific message (authenticated, ownership required)
 
 ```bash
 curl -X GET http://localhost:5000/api/messages/550e8400-e29b-41d4-a716-446655440001 \
   -H "Authorization: Bearer your-access-token"
 ```
+
+Note: This will only succeed if the authenticated user is the sender of the message.
 
 **Response:**
 
@@ -615,6 +634,7 @@ The application uses environment variables for configuration. You can set these 
 
 ## Future Improvements
 
+- Implement chat rooms or direct messaging between users
 - Add message editing functionality
 - Implement real-time messaging with WebSockets
 - Add user profile management

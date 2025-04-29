@@ -16,12 +16,12 @@ USERS_FILE = os.path.join(DATA_DIR, "users.json")
 MESSAGES_FILE = os.path.join(DATA_DIR, "messages.json")
 TOKENS_FILE = os.path.join(DATA_DIR, "tokens.json")
 
-# Ensure data directory exists
-os.makedirs(DATA_DIR, exist_ok=True)
-
 # Initialize empty data structures if files don't exist
 def init_storage():
     """Initialize the JSON storage files if they don't exist."""
+    # Ensure data directory exists
+    os.makedirs(DATA_DIR, exist_ok=True)
+
     if not os.path.exists(USERS_FILE):
         with open(USERS_FILE, 'w') as f:
             json.dump([], f)
@@ -37,6 +37,9 @@ def init_storage():
 # User storage functions
 def get_users() -> List[Dict[str, Any]]:
     """Get all users from the JSON file."""
+    # Ensure data directory exists
+    os.makedirs(DATA_DIR, exist_ok=True)
+
     try:
         with open(USERS_FILE, 'r') as f:
             return json.load(f)
@@ -48,6 +51,9 @@ def get_users() -> List[Dict[str, Any]]:
 
 def save_users(users: List[Dict[str, Any]]) -> None:
     """Save users to the JSON file."""
+    # Ensure data directory exists
+    os.makedirs(DATA_DIR, exist_ok=True)
+
     with open(USERS_FILE, 'w') as f:
         json.dump(users, f, indent=2)
 
@@ -87,6 +93,9 @@ def update_user(user_id: str, updated_data: Dict[str, Any]) -> Optional[Dict[str
 # Message storage functions
 def get_messages() -> List[Dict[str, Any]]:
     """Get all messages from the JSON file."""
+    # Ensure data directory exists
+    os.makedirs(DATA_DIR, exist_ok=True)
+
     try:
         with open(MESSAGES_FILE, 'r') as f:
             return json.load(f)
@@ -98,6 +107,9 @@ def get_messages() -> List[Dict[str, Any]]:
 
 def save_messages(messages: List[Dict[str, Any]]) -> None:
     """Save messages to the JSON file."""
+    # Ensure data directory exists
+    os.makedirs(DATA_DIR, exist_ok=True)
+
     with open(MESSAGES_FILE, 'w') as f:
         json.dump(messages, f, indent=2)
 
@@ -137,6 +149,9 @@ def delete_message(message_id: str, user_id: Optional[str] = None) -> Optional[D
 # Token storage functions
 def get_tokens() -> List[Dict[str, Any]]:
     """Get all refresh tokens from the JSON file."""
+    # Ensure data directory exists
+    os.makedirs(DATA_DIR, exist_ok=True)
+
     try:
         with open(TOKENS_FILE, 'r') as f:
             return json.load(f)
@@ -148,6 +163,9 @@ def get_tokens() -> List[Dict[str, Any]]:
 
 def save_tokens(tokens: List[Dict[str, Any]]) -> None:
     """Save refresh tokens to the JSON file."""
+    # Ensure data directory exists
+    os.makedirs(DATA_DIR, exist_ok=True)
+
     with open(TOKENS_FILE, 'w') as f:
         json.dump(tokens, f, indent=2)
 
