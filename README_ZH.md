@@ -27,7 +27,8 @@
 ├── models.py           # 数据模型
 ├── routes.py           # API 路由
 ├── requirements.txt    # 依赖项
-├── test_api.py         # 测试
+├── test_api.py         # 单元测试
+├── test_client.py      # API 测试客户端示例
 ├── .env.example        # 环境变量示例
 ├── data/               # JSON 数据文件目录（运行时创建）
 │   ├── users.json      # 用户数据
@@ -282,10 +283,10 @@ API 默认将在 `http://localhost:5000` 上可用，或者在您的环境变量
    ```bash
    # 在 Linux/Mac 上
    PORT=8080 python app.py
-   
+
    # 在 Windows 上 (PowerShell)
    $env:PORT=8080; python app.py
-   
+
    # 在 Windows 上 (命令提示符)
    set PORT=8080 && python app.py
    ```
@@ -304,10 +305,35 @@ API 默认将在 `http://localhost:5000` 上可用，或者在您的环境变量
 
 ## 测试
 
-使用以下命令运行测试：
+### 单元测试
+
+使用以下命令运行单元测试：
 ```
 python test_api.py
 ```
+
+### 测试客户端
+
+提供了一个示例客户端，用于演示如何以编程方式与 API 交互：
+
+```
+python test_client.py
+```
+
+测试客户端演示了：
+- 用户注册和登录
+- 令牌管理（包括自动令牌刷新）
+- 发送和检索消息
+- 错误处理
+
+您可以使用命令行参数自定义 API URL 和提供 API 密钥：
+
+```
+python test_client.py --url http://localhost:8080 --api-key your-secret-key
+```
+
+要求：
+- `requests` 库：`pip install requests`
 
 ## 使用示例
 

@@ -27,7 +27,8 @@ A simple chat API built with Python Flask for the 0xC (Chat) project.
 ├── models.py           # Data models
 ├── routes.py           # API routes
 ├── requirements.txt    # Dependencies
-├── test_api.py         # Tests
+├── test_api.py         # Unit tests
+├── test_client.py      # Sample client for API testing
 ├── .env.example        # Example environment variables
 ├── data/               # Directory for JSON data files (created at runtime)
 │   ├── users.json      # User data
@@ -305,10 +306,35 @@ The application will now be available at `http://localhost:8080`.
 
 ## Testing
 
-Run the tests using:
+### Unit Tests
+
+Run the unit tests using:
 ```
 python test_api.py
 ```
+
+### Test Client
+
+A sample client is provided to demonstrate how to interact with the API programmatically:
+
+```
+python test_client.py
+```
+
+The test client demonstrates:
+- User registration and login
+- Token management (including automatic token refresh)
+- Sending and retrieving messages
+- Error handling
+
+You can customize the API URL and provide an API key using command-line arguments:
+
+```
+python test_client.py --url http://localhost:8080 --api-key your-secret-key
+```
+
+Requirements:
+- The `requests` library: `pip install requests`
 
 ## Example Usage
 
